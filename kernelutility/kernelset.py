@@ -56,6 +56,7 @@ class KernelSet():
         subprocess.run(cmd, shell=True, check=True, stdout=stdout, executable="/bin/bash")
         self.kernels[name] = f"{KERNEL_STORE_DIR}/{name}"
 
+    # TODO (jpv): Restore is not working correctly.
     def restore(self, verbose=False):
         """(Re)activate a KernelSet."""
         os.makedirs(CONDA_DIR, exist_ok=True)
@@ -70,18 +71,40 @@ class KernelSet():
         stdout = None if verbose else subprocess.DEVNULL
         subprocess.run(cmd, shell=True, check=True, stdout=stdout, executable="/bin/bash")
 
+    # TODO (jpv): Add is not working correct, may be due to restore.
     def add(self, path):
         """Add environment from path."""
         path = pathlib.Path(path)
-        name = path.resolve.split("/")[-1]
+        name = str(path.resolve()).split("/")[-1]
         new_path = f"{KERNEL_STORE_DIR}/{name}"
-        shutil.copy(path.resolve(), new_path)
+        shutil.copy(path, new_path)
         self.kernels[name] = new_path
+        
+        with open(f"{KERNEL_STORE_DIR}/environments.txt", "a") as f:
+            f.write(new_path)
 
+        self.restore()
+
+    # TODO (jpv): Test remove functionality.
+    def remove(self, name):
+        """Remove kernel from set."""
+        if name not in name.keys():
+            msg = f"name={name} not in KernelSet, try one of the following {list(name.keys())}"
+            raise KeyError(msg)
+        os.removedirs(f"{KERNEL_STORE_DIR}/{name}")
+        self.kernels.pop(name)
+        self._write_contents_txt()
+
+    def _write_contents_txt(self):
+        with open(f"{KERNEL_STORE_DIR}/contents.txt", "w") as f:
+            f.write("/opt/conda\n")
+            for path in self.kernels.items():
+                f.write(f"{path}\n")
+        
     def __str__(self):
         """Human-readable representation of KernelSet."""
         njust = 10
-        ks = f"{'base'.ljust(njust)}/opt/bin/\n"
+        ks = f"{'base'.ljust(njust)}/opt/conda\n"
         for name, path in self.kernels.items():
-            ks.append(f"{name.ljust(njust)}\t{path}\n")
+            ks += f"{name.ljust(njust)}{path}\n"
         return ks

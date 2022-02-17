@@ -39,8 +39,7 @@ class KernelSet():
             # Restore discovered environments.
             self.restore()
 
-    @classmethod
-    def create(cls, name, python_version=None, verbose=False):
+    def create(self, name, python_version=None, verbose=False):
         """Create new kernel."""
         os.makedirs(KERNEL_STORE_DIR, exist_ok=True)
         python_version = "" if python_version is None else f"python={python_version}"
@@ -53,9 +52,9 @@ class KernelSet():
         cmd += f"cp -r /home/jupyter/.local/share/jupyter/kernels/{name}/ {KERNEL_STORE_DIR}/{name} && "
         cmd += f"cp /home/jupyter/.conda/environments.txt {KERNEL_STORE_DIR} && "
         cmd += f"rm -r /home/jupyter/.local/share/jupyter/kernels/{name}/"
-
         stdout = None if verbose else subprocess.DEVNULL
         subprocess.run(cmd, shell=True, check=True, stdout=stdout, executable="/bin/bash")
+        self.kernels[name] = f"{KERNEL_STORE_DIR}/{name}"
 
     def restore(self, verbose=False):
         """(Re)activate a KernelSet."""
@@ -71,7 +70,18 @@ class KernelSet():
         stdout = None if verbose else subprocess.DEVNULL
         subprocess.run(cmd, shell=True, check=True, stdout=stdout, executable="/bin/bash")
 
-    # TODO (jpv): Add the ability to restore env from path.
-    # def add(self, path):
-    #     """Add environment from path."""
-    #     pass
+    def add(self, path):
+        """Add environment from path."""
+        path = pathlib.Path(path)
+        name = path.resolve.split("/")[-1]
+        new_path = f"{KERNEL_STORE_DIR}/{name}"
+        shutil.copy(path.resolve(), new_path)
+        self.kernels[name] = new_path
+
+    def __str__(self):
+        """Human-readable representation of KernelSet."""
+        njust = 10
+        ks = f"{'base'.ljust(njust)}/opt/bin/\n"
+        for name, path in self.kernels.items():
+            ks.append(f"{name.ljust(njust)}\t{path}\n")
+        return ks

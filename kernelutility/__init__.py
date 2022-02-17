@@ -1,5 +1,4 @@
-# Find existing packages
-from kernelset import KernelSet
+from .kernelset import KernelSet
 
 kernelset = KernelSet()
 kernelset.restore()

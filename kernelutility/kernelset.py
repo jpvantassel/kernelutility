@@ -13,29 +13,31 @@ class KernelSet():
         path = pathlib.Path(path)
 
         # Confirm that environments.txt exists.
+        # If it does not exist, warn and create empty kernels dict.
         path_to_env = path / "environments.txt"
         if not path_to_env.exists():
             msg = f"No environments found in user space. kernelset has not been initialized."
             warnings.warn(msg, RuntimeWarning)
-            return None
+            self.kernels = {}
 
         # If environments.txt exists,  load it.
-        self.path_to_env = path_to_env.resolve()
-        with path_to_env.open("r") as f:
-            envs = f.readlines()
-        
-        # Parse environments.txt to get kernel names and locations.
-        self.kernels = {}
-        for env in envs:
-            env = env.rstrip()
-            if env == "/opt/conda":
-                continue
-            else:
-                name = env.split("/")[-1]
-            self.kernels[name] = env
+        else:
+            self.path_to_env = path_to_env.resolve()
+            with path_to_env.open("r") as f:
+                envs = f.readlines()
+            
+            # Parse environments.txt to get kernel names and locations.
+            self.kernels = {}
+            for env in envs:
+                env = env.rstrip()
+                if env == "/opt/conda":
+                    continue
+                else:
+                    name = env.split("/")[-1]
+                self.kernels[name] = env
 
-        # Restore discovered environments.
-        self.restore()
+            # Restore discovered environments.
+            self.restore()
 
     @classmethod
     def create(cls, name, python_version=None, verbose=False):

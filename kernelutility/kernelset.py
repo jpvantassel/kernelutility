@@ -2,6 +2,7 @@ import os
 import subprocess
 import pathlib
 import shutil
+import warnings
 
 from .constants import KERNEL_STORE_DIR, CONDA_DIR
 
@@ -14,8 +15,9 @@ class KernelSet():
         # Confirm that environments.txt exists.
         path_to_env = path / "environments.txt"
         if not path_to_env.exists():
-            msg = f"Path {path_to_env.resolve()} does not contain environments.txt."
-            raise FileNotFoundError(msg)
+            msg = f"No environments found in user space. kernelset has not been initialized."
+            warnings.warn(msg, RuntimeWarning)
+            return None
 
         # If environments.txt exists,  load it.
         self.path_to_env = path_to_env.resolve()
@@ -27,10 +29,13 @@ class KernelSet():
         for env in envs:
             env = env.rstrip()
             if env == "/opt/conda":
-                name = "base"
+                continue
             else:
                 name = env.split("/")[-1]
             self.kernels[name] = env
+
+        # Restore discovered environments.
+        self.restore()
 
     @classmethod
     def create(cls, name, python_version=None, verbose=False):
@@ -48,7 +53,7 @@ class KernelSet():
         cmd += f"rm -r /home/jupyter/.local/share/jupyter/kernels/{name}/"
 
         stdout = None if verbose else subprocess.DEVNULL
-        subprocess.run(cmd, shell=True, check=True, stdout=stdout)
+        subprocess.run(cmd, shell=True, check=True, stdout=stdout, executable="/bin/bash")
 
     def restore(self, verbose=False):
         """(Re)activate a KernelSet."""
@@ -62,4 +67,9 @@ class KernelSet():
         cmd += "echo User-defined kernels have been restored."
 
         stdout = None if verbose else subprocess.DEVNULL
-        subprocess.run(cmd, shell=True, check=True, stdout=stdout)
+        subprocess.run(cmd, shell=True, check=True, stdout=stdout, executable="/bin/bash")
+
+    # TODO (jpv): Add the ability to restore env from path.
+    # def add(self, path):
+    #     """Add environment from path."""
+    #     pass

@@ -73,7 +73,7 @@ class KernelSet():
         environemnt files on disk.
 
         """
-        self.remove(name)
+        self.remove({name: self.kernels[name]})
         os.removedirs(f"{KERNEL_STORE_DIR}/{name}")
 
     def restore(self, verbose=False):

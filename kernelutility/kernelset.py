@@ -62,9 +62,13 @@ class KernelSet():
         """(Re)activate a KernelSet."""
         os.makedirs(CONDA_DIR, exist_ok=True)
         shutil.copy(self.path_to_envs_txt, f"{CONDA_DIR}/environments.txt")
+        self._restore(self.kernels, verbose=verbose)
+
+    @staticmethod
+    def _restore(kernels, verbose=False):
         cmd =  "conda init bash && "
         cmd += "source /opt/conda/etc/profile.d/conda.sh && "
-        for name, path in self.kernels.items():
+        for name, _ in kernels.items():
             cmd += f"conda activate {KERNEL_STORE_DIR}/{name} && "
             cmd +=  "conda install ipykernel -y && "
         cmd += "echo User-defined kernels have been restored."
@@ -72,11 +76,22 @@ class KernelSet():
         stdout = None if verbose else subprocess.DEVNULL
         subprocess.run(cmd, shell=True, check=True, stdout=stdout, executable="/bin/bash")
 
-    # TODO (jpv): Add is not working correct, may be due to restore.
-    def add(self, path):
-        """Add environment from path."""
+    def add(self, path, verbose=False):
+        """Add environment from path by making a personal copy.
+        
+        Parameters
+        ----------
+        path : str
+            Path to directory containing the environment.
+
+        Returns
+        -------
+        None
+            Adds environment to the current available environments.
+
+        """
         path = pathlib.Path(path)
-        name = str(path.resolve()).split("/")[-1]
+        name = path.name
         new_path = f"{KERNEL_STORE_DIR}/{name}"
         shutil.copy(path, new_path)
         self.kernels[name] = new_path
@@ -84,7 +99,7 @@ class KernelSet():
         with open(f"{KERNEL_STORE_DIR}/environments.txt", "a") as f:
             f.write(new_path)
 
-        self.restore()
+        self._restore(dict(name=new_path), verbose=verbose)
 
     # TODO (jpv): Test remove functionality.
     def remove(self, name):

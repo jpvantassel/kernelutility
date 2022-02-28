@@ -118,7 +118,7 @@ class KernelSet():
         with open(f"{KERNEL_STORE_DIR}/environments.txt", "a") as f:
             f.write(f"{str(new_path)}\n")
 
-        self._restore({name:str(new_path)}, verbose=verbose)
+        self._restore(self.kernels, verbose=verbose)
 
     def remove(self, name):
         """Removes kernel from KernelSet, but does not delete associated files from disk.

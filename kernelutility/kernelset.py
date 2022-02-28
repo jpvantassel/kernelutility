@@ -73,7 +73,7 @@ class KernelSet():
         environemnt files on disk.
 
         """
-        self.remove({name: self.kernels[name]})
+        self.remove(name)
         os.removedirs(f"{KERNEL_STORE_DIR}/{name}")
 
     def restore(self, verbose=False):
@@ -134,8 +134,8 @@ class KernelSet():
             Removes environment.
 
         """
-        if name not in name.keys():
-            msg = f"name={name} not in KernelSet, try one of the following {list(name.keys())}"
+        if name not in self.kernels.keys():
+            msg = f"name={name} not in KernelSet, try one of the following {list(self.kernels.keys())}"
             raise KeyError(msg)
         self.kernels.pop(name)
         self._write_environments_txt()

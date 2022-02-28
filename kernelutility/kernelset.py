@@ -92,7 +92,7 @@ class KernelSet():
         """
         path = pathlib.Path(path)
         name = path.name
-        new_path = f"{KERNEL_STORE_DIR}/{name}"
+        new_path = f"{KERNEL_STORE_DIR}/{name}/"
         shutil.copy(path, new_path)
         self.kernels[name] = new_path
         
@@ -101,20 +101,32 @@ class KernelSet():
 
         self._restore(dict(name=new_path), verbose=verbose)
 
-    # TODO (jpv): Test remove functionality.
     def remove(self, name):
-        """Remove kernel from set."""
+        """Remove kernel.
+        
+        Parameters
+        ----------
+        name : str
+            Name of kernel to be removed.
+
+        Returns
+        -------
+        None
+            Removes environment.
+
+        """
         if name not in name.keys():
             msg = f"name={name} not in KernelSet, try one of the following {list(name.keys())}"
             raise KeyError(msg)
         os.removedirs(f"{KERNEL_STORE_DIR}/{name}")
         self.kernels.pop(name)
-        self._write_contents_txt()
+        self._write_environments_txt()
+        self.restore()
 
-    def _write_contents_txt(self):
-        with open(f"{KERNEL_STORE_DIR}/contents.txt", "w") as f:
+    def _write_environments_txt(self):
+        with open(f"{KERNEL_STORE_DIR}/environments.txt", "w") as f:
             f.write("/opt/conda\n")
-            for path in self.kernels.items():
+            for path in self.kernels.values():
                 f.write(f"{path}\n")
         
     def __str__(self):

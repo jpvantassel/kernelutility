@@ -74,7 +74,7 @@ class KernelSet():
 
         """
         self.remove(name)
-        os.removedirs(f"{KERNEL_STORE_DIR}/{name}")
+        shutil.rmtree(f"{KERNEL_STORE_DIR}/{name}")
 
     def restore(self, verbose=False):
         """(Re)activate a KernelSet."""

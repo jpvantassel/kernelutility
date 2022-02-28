@@ -19,13 +19,24 @@ with open('README.md', "r", encoding="utf-8") as f:
 setup(
     name='kernelutility',
     version=meta['__version__'],
-    description='A package for creating, restoring, and sharing Python kernels',
+    description='A Python package for managing Python kernels',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/jpvantassel/kernelutility',
     author='Joseph P. Vantassel',
     author_email='jvantassel@tacc.utexas.edu',
     classifiers=[
+        "Development Status :: 4 - Beta",
+
+        "Framework :: Jupyter",
+        "Framework :: Jupyter :: JupyterLab",
+
+        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+
+        "Programming Language :: Python :: 3.7"
+        "Programming Language :: Python :: 3.8"
+        "Programming Language :: Python :: 3.9"
+        "Programming Language :: Python :: 3.10"
     ],
     keywords='jupyter kernel conda',
     packages=find_packages(),

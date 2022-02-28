@@ -14,27 +14,29 @@ class KernelSet():
 
         # Confirm that environments.txt exists.
         # If it does not exist, warn and create empty kernels dict.
-        path_to_env = path / "environments.txt"
-        if not path_to_env.exists():
+        path_to_envs_txt = path / "environments.txt"
+        if not path_to_envs_txt.exists():
             msg = f"No environments found in user space. kernelset has not been initialized."
             warnings.warn(msg, RuntimeWarning)
             self.kernels = {}
 
-        # If environments.txt exists,  load it.
+        # If environments.txt exists, load it.
         else:
-            self.path_to_env = path_to_env.resolve()
-            with path_to_env.open("r") as f:
-                envs = f.readlines()
+            self.path_to_envs_txt = path_to_envs_txt.resolve()
+            with path_to_envs_txt.open("r") as f:
+                lines = f.readlines()
             
             # Parse environments.txt to get kernel names and locations.
             self.kernels = {}
-            for env in envs:
-                env = env.rstrip()
-                if env == "/opt/conda":
+            for line in lines:
+                path_to_env = pathlib.PurePath(line.rstrip())
+                # Skip the base environemnt.
+                if path_to_env == pathlib.PurePath("/opt/conda"):
                     continue
+                # All others will be stored.
                 else:
-                    name = env.split("/")[-1]
-                self.kernels[name] = env
+                    name = path_to_env.name
+                self.kernels[name] = str(path_to_env)
 
             # Restore discovered environments.
             self.restore()
@@ -56,11 +58,10 @@ class KernelSet():
         subprocess.run(cmd, shell=True, check=True, stdout=stdout, executable="/bin/bash")
         self.kernels[name] = f"{KERNEL_STORE_DIR}/{name}"
 
-    # TODO (jpv): Restore is not working correctly.
     def restore(self, verbose=False):
         """(Re)activate a KernelSet."""
         os.makedirs(CONDA_DIR, exist_ok=True)
-        shutil.copy(self.path_to_env, f"{CONDA_DIR}/environmnets.txt")
+        shutil.copy(self.path_to_envs_txt, f"{CONDA_DIR}/environments.txt")
         cmd =  "conda init bash && "
         cmd += "source /opt/conda/etc/profile.d/conda.sh && "
         for name, path in self.kernels.items():

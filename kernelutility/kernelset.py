@@ -86,7 +86,7 @@ class KernelSet():
     def _restore(kernels, verbose=False):
         cmd =  "conda init bash && "
         cmd += "source /opt/conda/etc/profile.d/conda.sh && "
-        for name, _ in kernels.items():
+        for name in kernels.keys():
             cmd += f"conda activate {KERNEL_STORE_DIR}/{name} && "
             cmd +=  "conda install ipykernel -y && "
         cmd += "echo User-defined kernels have been restored."
@@ -118,7 +118,7 @@ class KernelSet():
         with open(f"{KERNEL_STORE_DIR}/environments.txt", "a") as f:
             f.write(f"{str(new_path)}\n")
 
-        self._restore(dict(name=str(new_path)), verbose=verbose)
+        self._restore({name:str(new_path)}, verbose=verbose)
 
     def remove(self, name):
         """Removes kernel from KernelSet, but does not delete associated files from disk.

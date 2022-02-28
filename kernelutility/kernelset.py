@@ -58,6 +58,24 @@ class KernelSet():
         subprocess.run(cmd, shell=True, check=True, stdout=stdout, executable="/bin/bash")
         self.kernels[name] = f"{KERNEL_STORE_DIR}/{name}"
 
+    def destroy(self, name):
+        """Remove kernel and deletes all assocaited files on disk.
+        
+        Parameters
+        ----------
+        name : str
+            Name of kernel to be destroyed.
+
+        Returns
+        -------
+        None
+            Removes environment from KernelSet and deletes all associated
+        environemnt files on disk.
+
+        """
+        self.remove(name)
+        os.removedirs(f"{KERNEL_STORE_DIR}/{name}")
+
     def restore(self, verbose=False):
         """(Re)activate a KernelSet."""
         os.makedirs(CONDA_DIR, exist_ok=True)
@@ -92,17 +110,18 @@ class KernelSet():
         """
         path = pathlib.Path(path)
         name = path.name
-        new_path = f"{KERNEL_STORE_DIR}/{name}/"
-        shutil.copy(path, new_path)
-        self.kernels[name] = new_path
+        new_path = pathlib.Path(f"{KERNEL_STORE_DIR}/{name}/")
+        if path != new_path:
+            shutil.copytree(path, new_path)
+        self.kernels[name] = str(new_path)
         
         with open(f"{KERNEL_STORE_DIR}/environments.txt", "a") as f:
-            f.write(new_path)
+            f.write(f"{str(new_path)}\n")
 
-        self._restore(dict(name=new_path), verbose=verbose)
+        self._restore(dict(name=str(new_path)), verbose=verbose)
 
     def remove(self, name):
-        """Remove kernel.
+        """Removes kernel from KernelSet, but does not delete associated files from disk.
         
         Parameters
         ----------
@@ -118,7 +137,6 @@ class KernelSet():
         if name not in name.keys():
             msg = f"name={name} not in KernelSet, try one of the following {list(name.keys())}"
             raise KeyError(msg)
-        os.removedirs(f"{KERNEL_STORE_DIR}/{name}")
         self.kernels.pop(name)
         self._write_environments_txt()
         self.restore()

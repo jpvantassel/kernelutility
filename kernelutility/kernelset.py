@@ -111,7 +111,7 @@ class KernelSet():
         path = pathlib.Path(path)
         name = path.name
         new_path = pathlib.Path(f"{KERNEL_STORE_DIR}/{name}/")
-        if path != new_path:
+        if path.resolve() != new_path:
             shutil.copytree(path, new_path)
         self.kernels[name] = str(new_path)
         

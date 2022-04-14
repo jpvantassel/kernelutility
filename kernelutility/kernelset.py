@@ -15,6 +15,8 @@ class KernelSet():
         # Confirm that environments.txt exists.
         # If it does not exist, warn and create empty kernels dict.
         path_to_envs_txt = path / "environments.txt"
+        self.path_to_envs_txt = path_to_envs_txt.resolve()
+
         if not path_to_envs_txt.exists():
             msg = f"No environments found in user space. kernelset has not been initialized."
             warnings.warn(msg, RuntimeWarning)
@@ -22,7 +24,6 @@ class KernelSet():
 
         # If environments.txt exists, load it.
         else:
-            self.path_to_envs_txt = path_to_envs_txt.resolve()
             with path_to_envs_txt.open("r") as f:
                 lines = f.readlines()
             
@@ -30,7 +31,7 @@ class KernelSet():
             self.kernels = {}
             for line in lines:
                 path_to_env = pathlib.PurePath(line.rstrip())
-                # Skip the base environemnt.
+                # Skip the base environment.
                 if path_to_env == pathlib.PurePath("/opt/conda"):
                     continue
                 # All others will be stored.
@@ -59,7 +60,7 @@ class KernelSet():
         self.kernels[name] = f"{KERNEL_STORE_DIR}/{name}"
 
     def destroy(self, name):
-        """Remove kernel and deletes all assocaited files on disk.
+        """Remove kernel and deletes all associated files on disk.
         
         Parameters
         ----------
